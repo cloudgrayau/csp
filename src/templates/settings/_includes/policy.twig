@@ -1,0 +1,29 @@
+{% import "_includes/forms" as forms %}
+{% import 'cloudgrayau-utils/_macros' as macros %}
+<div id="policy">
+    {% namespace "settings" %}
+    
+    {% for obj, policy in settings.policyOptions %}
+        {% if obj in settings.cspOptions %}
+            {{ forms.editableTableField({
+                label: ('`'~policy~'`')|md,
+                name: obj,
+                addRowLabel: 'Add a policy',
+                allowAdd: true,
+                allowDelete: true,
+                allowReorder: true,
+                cols: [
+                    {
+                        type: "singleline",
+                        width: "100%",
+                        code: true,
+                    },
+                ],
+                rows: settings[obj],
+                warning: macros.configWarning(obj, 'csp')
+            }) }}
+        {% endif %}
+    {% endfor %}
+    
+    {% endnamespace %}
+</div>

@@ -1,0 +1,39 @@
+{% import "_includes/forms" as forms %}
+{% import 'cloudgrayau-utils/_macros' as macros %}
+<div id="settings"{% if ((settings.cspEnabled) or (settings.protectionEnabled)) %} class="hidden"{% endif %}>
+    {% namespace "settings" %}
+    
+    {{ forms.lightswitchField({
+        label: "Enable Content Security Policy"|t,
+        instructions: "A [Content Security Policy](https://content-security-policy.com/) helps you reduce XSS risks on modern browsers by declaring which dynamic resources are allowed to load."|md,
+        name: 'cspEnabled',
+        on: settings.cspEnabled,
+        warning: macros.configWarning('cspEnabled', 'csp')
+    }) }}
+    {{ forms.lightswitchField({
+        label: "Enable Header Protection",
+        instructions: "Additional HTTP Response Headers that provide security",
+        name: 'protectionEnabled',
+        on: settings.protectionEnabled,
+        warning: macros.configWarning('protectionEnabled', 'csp')
+    }) }}
+    
+    <hr>
+    
+    {{ forms.selectField({
+        label: "CSP Mode",
+        name: 'cspMode',
+        options: settings.modeOptions,
+        value: settings['cspMode'],
+        warning: macros.configWarning('cspMode', 'csp')
+    }) }}
+    {{ forms.checkboxSelectField({
+        label: "CSP Options",
+        name: 'cspOptions',
+        options: settings.policyOptions,
+        values: settings.cspOptions,
+        warning: macros.configWarning('cspOptions', 'csp')
+    }) }}
+    
+    {% endnamespace %}
+</div>

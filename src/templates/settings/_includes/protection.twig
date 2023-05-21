@@ -1,0 +1,31 @@
+{% import "_includes/forms" as forms %}
+{% import 'cloudgrayau-utils/_macros' as macros %}
+<div id="protection"{% if (settings.cspEnabled) %} class="hidden"{% endif %}>
+    {% namespace "settings" %}
+    
+    {{ forms.editableTableField({
+        label: "HTTP Response Headers"|md,
+        name: 'headerProtection',
+        cols: [
+            {
+                type: 'singleline',
+                heading: 'Header',
+                width: '25%',
+                code: true,
+            },
+            {
+                type: 'singleline',
+                heading: 'Value',
+                code: true,
+            },
+        ],
+        rows: settings.headerProtection,
+        addRowLabel: 'Add a header',
+        allowAdd: true,
+        allowDelete: true,
+        allowReorder: true,
+        warning: macros.configWarning('headerProtection', 'csp')
+    }) }}
+    
+    {% endnamespace %}
+</div>

@@ -1,0 +1,44 @@
+{
+    "name": "cloudgrayau/csp",
+    "description": "Content Security Policy manager for Craft CMS",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "csp",
+        "content-security-policy"
+    ],
+    "support": {
+        "docs": "https://github.com/cloudgrayau/csp",
+        "issues": "https://github.com/cloudgrayau/csp/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cloud Gray Pty Ltd",
+            "homepage": "https://cloudgray.com.au/"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^4.0",
+        "php": "^8.0",
+        "cloudgrayau/utils": "^1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+          "cloudgrayau\\csp\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Content Security Policy",
+        "handle": "csp",
+        "developer": "Cloud Gray Pty Ltd",
+        "developerUrl": "https://cloudgray.com.au/",
+        "documentationUrl": "https://github.com/cloudgrayau/csp/blob/craft4/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/cloudgrayau/csp/craft4/CHANGELOG.md",
+        "class": "cloudgrayau\\csp\\Csp"
+    }
+}

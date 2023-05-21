@@ -1,0 +1,57 @@
+{% extends "_layouts/cp" %}
+{% set title = 'Content Security Policy' %}
+
+{% do view.registerAssetBundle("cloudgrayau\\utils\\assetbundles\\CloudGrayAsset") %}
+
+{% set crumbs = [
+  { label: 'Settings'|t('app'), url: url('settings') },
+  { label: 'Plugins'|t('app'), url: url('settings/plugins') }
+] %}
+
+{% set fullPageForm = true %}
+{% set tabs = {} %}
+{% if (settings.cspEnabled) %}
+{% set tabs = tabs|merge({
+  "policies": {label: "Policy", url: "#policy"},
+}) %}
+{% endif %}
+{% if (settings.protectionEnabled) %}
+{% set tabs = tabs|merge({
+  "protection": {label: "Protection", url: "#protection"},
+}) %}
+{% endif %}
+{% set tabs = tabs|merge({
+  "settings": {label: "Settings", url: "#settings"}
+}) %}
+
+
+{#% set tabs = {
+  "policies": {label: "Policy", url: "#policy"},
+  "protection": {label: "Protection", url: "#protection"},
+  "settings": {label: "Settings", url: "#settings"}
+} %#}
+
+{% block content %}
+
+    <input type="hidden" name="action" value="plugins/save-plugin-settings">
+    <input type="hidden" name="pluginHandle" value="csp">
+
+    {{ redirectInput("csp/settings") }}
+
+    {# -- Policy settings -- #}
+    {% if (settings.cspEnabled) %}
+    {% include "csp/settings/_includes/policy.twig" %}
+    {% endif %}
+    
+    {# -- Protection settings -- #}
+    {% if (settings.protectionEnabled) %}
+    {% include "csp/settings/_includes/protection.twig" %}
+    {% endif %}
+    
+    {# -- General settings -- #}
+    {% include "csp/settings/_includes/settings.twig" %}
+    
+    <hr>
+    <p class="cloudgray"><a href="https://cloudgray.com.au/">{% include 'cloudgrayau-utils/_svg/cloudgray.svg' %} <small>Cloud Gray</small></a></p>
+
+{% endblock %}
