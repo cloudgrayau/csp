@@ -96,6 +96,9 @@ class Settings extends Model {
   public array $manifestSrc = [];
   public array $prefetchSrc = [];
   public array $navigateTo = [];
+  
+  // Public Methods
+  // =========================================================================
 
   public function rules(): array {
     return [

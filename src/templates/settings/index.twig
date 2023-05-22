@@ -40,18 +40,17 @@
 
     {# -- Policy settings -- #}
     {% if (settings.cspEnabled) %}
-    {% include "csp/settings/_includes/policy.twig" %}
+    {% include "csp/settings/_includes/policy" %}
     {% endif %}
     
     {# -- Protection settings -- #}
     {% if (settings.protectionEnabled) %}
-    {% include "csp/settings/_includes/protection.twig" %}
+    {% include "csp/settings/_includes/protection" %}
     {% endif %}
     
     {# -- General settings -- #}
-    {% include "csp/settings/_includes/settings.twig" %}
+    {% include "csp/settings/_includes/settings" %}
     
-    <hr>
-    <p class="cloudgray"><a href="https://cloudgray.com.au/">{% include 'cloudgrayau-utils/_svg/cloudgray.svg' %} <small>Cloud Gray</small></a></p>
+    {% include 'cloudgrayau-utils/footer' %}
 
 {% endblock %}
