@@ -33,7 +33,7 @@
         }
     },
     "extra": {
-        "name": "Content Security Policy",
+        "name": "CSP",
         "handle": "csp",
         "developer": "Cloud Gray Pty Ltd",
         "developerUrl": "https://cloudgray.com.au/",

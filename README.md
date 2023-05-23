@@ -1,4 +1,4 @@
-# Content Security Policy for Craft CMS 4
+# CSP for Craft CMS 4
 
 Content Security Policy manager for Craft CMS.
 
@@ -25,7 +25,7 @@ The `Content-Security-Policy` HTTP Response Header applied by SEOMatic is automa
 
 ### Blitz Compatibility
 
-To ensure the Content Security Policy remains compatible with Blitz Caching enabled, please ensure the `CSP Mode` is set to **`Meta Tags`** inside the `Content Security Policy Settings (Settings)`.
+To ensure the Content Security Policy remains compatible with Blitz Caching enabled, please ensure the `CSP Mode` is set to **`Meta Tags`** inside the `CSP Settings (Settings)`.
 
 ## Setup ##
 
