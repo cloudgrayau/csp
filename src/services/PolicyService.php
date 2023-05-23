@@ -16,7 +16,7 @@ class PolicyService extends Component {
     // Public Methods
     // =========================================================================
     
-    public function applyHeaders() {
+    public function applyHeaders(): void {
         $settings = Csp::$plugin->settings;
         if ($settings->protectionEnabled){
             foreach($settings->headerProtection as $header){
@@ -27,7 +27,7 @@ class PolicyService extends Component {
         }
     }
     
-    public function cspLogic() {
+    public function parseCsp(): void {
         $settings = Csp::$plugin->settings;
         $cspOptions = $settings->cspOptions;
         if ($settings->cspMode == 'tag'){ /* disable unsupported meta tag options */
@@ -71,7 +71,7 @@ class PolicyService extends Component {
         }
         
         /* deal with SEOMatic */
-        if (class_exists('\nystudio107\seomatic\helpers\DynamicMeta')){
+        if (Craft::$app->plugins->isPluginEnabled('seomatic')){
             $cspNonces = \nystudio107\seomatic\helpers\DynamicMeta::getCspNonces();
             foreach($cspNonces as $row){
                 if (!empty(trim($row))){
@@ -90,14 +90,14 @@ class PolicyService extends Component {
         }
     }
     
-    public function renderCsp() {
+    public function renderCsp(): void {
         $settings = Csp::$plugin->settings;
         $name = ($settings->cspMode == 'report') ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy';
         $value = '';
         foreach ($this->cspData as $csp => $data){
             $value .= $csp.' '.implode(' ', $data).'; ';
         }
-        if ($settings->cspMode == 'tag'){
+        if ($settings->cspMode == 'tag'){            
             Craft::$app->getView()->registerMetaTag([
                 'content' => trim($value),
                 'http-equiv' => $name
@@ -107,9 +107,16 @@ class PolicyService extends Component {
         }
     }
     
-    public function registerNonce(string $type = 'script-src') {
+    public function registerNonce(string $type = 'script-src'): string {
         $settings = Csp::$plugin->settings;
+        $nonces = [];
+        foreach($this->nonceData as $arg){
+            $nonces = array_merge($nonces, $arg);
+        }        
         $nonce = base64_encode(StringHelper::randomString());
+        while(in_array($nonce, $nonces)){
+            $nonce = base64_encode(StringHelper::randomString());
+        }
         if (in_array($type, $settings->policyOptions)){
             $this->nonceData[$type][] = $nonce;
         }

@@ -12,17 +12,17 @@ class CspTwigExtension extends AbstractExtension {
     // Public Methods
     // =========================================================================
     
-    public function getName() {
+    public function getName(): string {
         return 'Content Security Policy';
     }
 
-    public function getFunctions() {
+    public function getFunctions(): array {
         return [
             new TwigFunction('csp', [$this, 'registerNonce']),
         ];
     }
 
-    public function registerNonce(string $type = 'script-src') {
+    public function registerNonce(string $type = 'script-src'): string {
         return Csp::$plugin->policy->registerNonce($type);
     }
     

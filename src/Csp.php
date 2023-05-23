@@ -30,7 +30,7 @@ class Csp extends Plugin {
    // Public Methods
    // =========================================================================
 
-   public function init(){
+   public function init(): void {
       parent::init();
       self::$plugin = $this;
          
@@ -68,29 +68,29 @@ class Csp extends Plugin {
       UtilityHelper::registerModule();
    }
    
-   private function _registerVariables() {
+   private function _registerVariables(): void {
       Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $e) {
          $variable = $e->sender;
          $variable->set('csp', CspVariable::class);
       });
    }
    
-   private function _registerTwigExtensions() {
+   private function _registerTwigExtensions(): void {
       Craft::$app->getView()->registerTwigExtension(new CspTwigExtension());
    }
    
-   private function _registerCSP() {
-      $user = Craft::$app->getUser()->getIdentity();
+   private function _registerCSP(): void {
+      /*$user = Craft::$app->getUser()->getIdentity();
       if ($user && $user->getPreference('enableDebugToolbarForSite')) {
          Event::on(View::class, View::EVENT_AFTER_RENDER_PAGE_TEMPLATE, function (Event $e) {
             Craft::$app->getResponse()->getHeaders()->remove('Content-Security-Policy');
             Craft::$app->getResponse()->getHeaders()->remove('X-Content-Security-Policy');
          });
          return;
-      }
+      }*/
       if ($this->settings->cspEnabled){
          Event::on(View::class, View::EVENT_END_PAGE, function (Event $e) {
-            $this->policy->cspLogic();
+            $this->policy->parseCsp();
             if ($this->settings->cspMode == 'tag'){
                $this->policy->renderCsp();
             }
@@ -105,7 +105,7 @@ class Csp extends Plugin {
       }
    }
    
-   private function _registerCpUrlRules() {
+   private function _registerCpUrlRules(): void {
       Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
          $event->rules += [
             'csp/settings' => 'csp/settings/settings'

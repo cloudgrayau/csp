@@ -8,7 +8,7 @@ class CspVariable {
     // Public Methods
     // =========================================================================
     
-    public function registerNonce(string $type = 'script-src') {
+    public function registerNonce(string $type = 'script-src'): string {
         return Csp::$plugin->policy->registerNonce($type);
     }
     
