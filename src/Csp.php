@@ -96,8 +96,9 @@ class Csp extends Plugin {
             }
          });
          Event::on(View::class, View::EVENT_AFTER_RENDER_PAGE_TEMPLATE, function (Event $e) {
-            Craft::$app->getResponse()->getHeaders()->remove('Content-Security-Policy');
+            Craft::$app->getResponse()->getHeaders()->remove('Content-Security-Policy'); /* Remove all existing CSP headers */
             Craft::$app->getResponse()->getHeaders()->remove('X-Content-Security-Policy');
+            Craft::$app->getResponse()->getHeaders()->remove('X-Webkit-Csp');
             if ($this->settings->cspMode == 'header' || $this->settings->cspMode == 'report'){
                $this->policy->renderCsp();
             }

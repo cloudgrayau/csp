@@ -21,7 +21,9 @@ return [
     'scriptSrc',
     'styleSrc',
     'imgSrc',
-    'connectSrc'
+    'connectSrc',
+    'formAction',
+    'baseUri'
   ],
   'protectionEnabled' => true,
   'headerProtection' => [
