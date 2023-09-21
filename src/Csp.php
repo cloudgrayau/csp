@@ -80,14 +80,15 @@ class Csp extends Plugin {
    }
    
    private function _registerCSP(): void {
-      /*$user = Craft::$app->getUser()->getIdentity();
+      $user = Craft::$app->getUser()->getIdentity(); /* Disable CSP when debugToolBar is enabled */
       if ($user && $user->getPreference('enableDebugToolbarForSite')) {
          Event::on(View::class, View::EVENT_AFTER_RENDER_PAGE_TEMPLATE, function (Event $e) {
             Craft::$app->getResponse()->getHeaders()->remove('Content-Security-Policy');
             Craft::$app->getResponse()->getHeaders()->remove('X-Content-Security-Policy');
+            Craft::$app->getResponse()->getHeaders()->remove('X-Webkit-Csp');
          });
          return;
-      }*/
+      }
       if ($this->settings->cspEnabled){
          Event::on(View::class, View::EVENT_END_PAGE, function (Event $e) {
             $this->policy->parseCsp();

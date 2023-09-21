@@ -49,6 +49,7 @@ class PolicyService extends Component {
         foreach($cspOptions as $option){
             $cspkey = $settings->policyOptions[$option];
             foreach($settings[$option] as $row){
+                $row = (array)$row;
                 if (isset($row[0])){
                     if (!empty(trim($row[0]))){
                         $data = explode(' ', trim($row[0]));
