@@ -2,7 +2,7 @@
     "name": "cloudgrayau/csp",
     "description": "Content Security Policy manager for Craft CMS",
     "type": "craft-plugin",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "keywords": [
         "craft",
         "cms",

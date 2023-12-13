@@ -37,6 +37,7 @@ class Csp extends Plugin {
       $this->_registerComponents();
       $this->_registerVariables();
       $this->_registerTwigExtensions();
+      $this->_registerSettings();
          
       if (Craft::$app->getRequest()->getIsConsoleRequest()) {
          return;
@@ -114,6 +115,25 @@ class Csp extends Plugin {
          ];
       });
    }
+   
+  private function _registerSettings(): void {
+    $cspOptions = $this->settings->cspOptions;
+    foreach($cspOptions as $option){
+      $settings = Craft::$app->config->getConfigFromFile('csp');
+      if (isset($settings[$option])){
+        $policy = array();
+        foreach($settings[$option] as $row){
+          $row = (array)$row;
+          if (isset($row[0])){
+            if (!empty(trim($row[0]))){
+              $policy[] = array(trim($row[0]));
+            }
+          }
+        }
+        $this->settings[$option] = $policy;
+      }
+    }
+  }
 
    // Protected Methods
    // =========================================================================
