@@ -38,16 +38,7 @@ class Csp extends Plugin {
       $this->_registerVariables();
       $this->_registerTwigExtensions();
       $this->_registerSettings();
-         
-      if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-         return;
-      }
-      $this->policy->applyHeaders();
-      if (Craft::$app->getRequest()->getIsSiteRequest()) {
-         $this->_registerCSP();
-      } elseif (Craft::$app->getRequest()->getIsCpRequest()) {
-         $this->_registerCpUrlRules();
-      }
+      $this->_registerInit();
    }
    
    public function getSettingsResponse(): mixed {
@@ -78,6 +69,20 @@ class Csp extends Plugin {
    
    private function _registerTwigExtensions(): void {
       Craft::$app->getView()->registerTwigExtension(new CspTwigExtension());
+   }
+   
+   private function _registerInit(): void {
+      Craft::$app->on(Application::EVENT_INIT, function() {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+           return;
+        }
+        $this->policy->applyHeaders();
+        if (Craft::$app->getRequest()->getIsSiteRequest()) {
+           $this->_registerCSP();
+        } elseif (Craft::$app->getRequest()->getIsCpRequest()) {
+           $this->_registerCpUrlRules();
+        }
+      });
    }
    
    private function _registerCSP(): void {
