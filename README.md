@@ -1,4 +1,4 @@
-# CSP for Craft CMS 4
+# CSP for Craft CMS 4/5
 
 Content Security Policy manager for Craft CMS.
 

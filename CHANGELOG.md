@@ -2,6 +2,9 @@
 
 Release notes for the CSP Craft CMS plugin.
 
+## 1.1.0 - 2024-01-25
+- Craft 5 support
+
 ## 1.0.5 - 2023-12-24
 - Fixed query executed before initialised warning
 

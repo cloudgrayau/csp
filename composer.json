@@ -2,7 +2,7 @@
     "name": "cloudgrayau/csp",
     "description": "Content Security Policy manager for Craft CMS",
     "type": "craft-plugin",
-    "version": "1.0.5",
+    "version": "1.1.0",
     "keywords": [
         "craft",
         "cms",
@@ -23,9 +23,9 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^4.0",
-        "php": "^8.0",
-        "cloudgrayau/utils": "^1.0.0"
+        "craftcms/cms": "^4.0|^5.0",
+        "php": "^8.0|^8.2",
+        "cloudgrayau/utils": "^1.1"
     },
     "autoload": {
         "psr-4": {
