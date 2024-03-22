@@ -2,6 +2,9 @@
 
 Release notes for the CSP Craft CMS plugin.
 
+## 1.2.0 - 2024-03-22
+- Allow realtime configuration updates via twig
+
 ## 1.1.0 - 2024-01-25
 - Craft 5 support
 

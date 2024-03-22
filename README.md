@@ -45,4 +45,12 @@ Additional nonces can be configured in your templates as follows:
 {% do view.registerJsFile(url('js/site.js'), { nonce: csp('script-src') }) %}
 ```
 
+### Overriding Config
+
+The CSP configuration can be updated in realtime via your templates with twig. This can be useful, for example to disable the CSP on XHR requests.
+
+```twig
+{% do craft.csp.config({'cspEnabled': false}) %}
+```
+
 Brought to you by [Cloud Gray Pty Ltd](https://cloudgray.com.au/)

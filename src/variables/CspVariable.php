@@ -9,7 +9,15 @@ class CspVariable {
     // =========================================================================
     
     public function registerNonce(string $type = 'script-src'): string {
-        return Csp::$plugin->policy->registerNonce($type);
+      return Csp::$plugin->policy->registerNonce($type);
+    }
+    
+    public function config(array $config = []): void {
+      foreach($config as $obj => $value){
+        if (isset(Csp::$plugin->settings[$obj])){
+          Csp::$plugin->settings[$obj] = $value;
+        }
+      }
     }
     
 }
