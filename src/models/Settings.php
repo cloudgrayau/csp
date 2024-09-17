@@ -17,7 +17,11 @@ class Settings extends Model {
   public array $policyOptions = [
     'defaultSrc' => 'default-src',
     'scriptSrc' => 'script-src',
+    'scriptSrcAttr' => 'script-src-attr',
+    'scriptSrcElem' => 'script-src-elem',
     'styleSrc' => 'style-src',
+    'styleSrcAttr' => 'style-src-attr',
+    'styleSrcElem' => 'style-src-elem',
     'imgSrc' => 'img-src',
     'connectSrc' => 'connect-src',
     'fontSrc' => 'font-src',
@@ -67,9 +71,13 @@ class Settings extends Model {
   public array $scriptSrc = [
     ["'self'"]
   ];
+  public array $scriptSrcAttr = [];
+  public array $scriptSrcElem = [];
   public array $styleSrc = [
     ["'self'"]
   ];
+  public array $styleSrcAttr = [];
+  public array $styleSrcElem = [];
   public array $imgSrc = [
     ["'self'"]
   ];
@@ -110,7 +118,11 @@ class Settings extends Model {
           'cspOptions',
           'defaultSrc',
           'scriptSrc',
+          'scriptSrcAttr',
+          'scriptSrcElem',
           'styleSrc',
+          'styleSrcAttr',
+          'styleSrcElem',
           'imgSrc',
           'connectSrc',
           'fontSrc',

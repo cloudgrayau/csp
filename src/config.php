@@ -39,8 +39,16 @@ return [
   'scriptSrc' => [
     ["'self'"]
   ],
+  'scriptSrcAttr' => [
+  ],
+  'scriptSrcElem' => [
+  ],
   'styleSrc' => [
     ["'self'"]
+  ],
+  'styleSrcAttr' => [
+  ],
+  'styleSrcElem' => [
   ],
   'imgSrc' => [
     ["'self'"]
