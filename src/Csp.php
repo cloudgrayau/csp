@@ -23,7 +23,7 @@ use yii\base\Event;
 class Csp extends Plugin {
 
    public static $plugin;
-   public string $schemaVersion = '1.0.0';
+   public string $schemaVersion = '1.0.1';
    public bool $hasCpSettings = true;
    public bool $hasCpSection = false;
 
