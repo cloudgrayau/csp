@@ -2,126 +2,102 @@
 namespace cloudgrayau\csp\services;
 
 use cloudgrayau\csp\Csp;
+use cloudgrayau\csp\models\Settings;
 
-use Craft;
-use craft\base\Component;
-use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
+use Illuminate\Support\Str;
 
-class PolicyService extends Component {
-    
-    private array $cspData = [];
-    private array $nonceData = [];
-    
-    // Public Methods
-    // =========================================================================
-    
-    public function applyHeaders(): void {
-        $settings = Csp::$plugin->settings;
-        if ($settings->protectionEnabled){
-            foreach($settings->headerProtection as $header){
-                if ((!empty($header[0])) && (!empty($header[1]))){
-                    Craft::$app->getResponse()->getHeaders()->set(trim($header[0]), trim($header[1]));
-                }
-            }
+class PolicyService {
+
+  private array $cspData = [];
+  private array $nonceData = [];
+
+  public function protectionHeaders(): array {
+    $settings = $this->settings();
+    $headers = [];
+    if ($settings->protectionEnabled) {
+      foreach ($settings->headerProtection as $header) {
+        $header = (array) $header;
+        if (!empty($header[0]) && !empty($header[1])) {
+          $headers[trim($header[0])] = trim($header[1]);
         }
+      }
     }
-    
-    public function parseCsp(): void {
-        $settings = Csp::$plugin->settings;
-        $cspOptions = $settings->cspOptions;
-        if ($settings->cspMode == 'tag'){ /* disable unsupported meta tag options */
-            $cspOptions = array();
-            foreach($settings->cspOptions as $option){
-                switch($option){
-                    case 'reportUri':
-                    case 'frameAncestors':
-                    case 'sandbox':
-                        break;
-                    default:
-                        $cspOptions[] = $option;
-                        break;
-                }
-            }
-        }
-        
-        /* deal with settings */
-        foreach($cspOptions as $option){
-            $cspkey = $settings->policyOptions[$option];
-            foreach($settings[$option] as $row){
-                $row = (array)$row;
-                if (isset($row[0])){
-                    if (!empty(trim($row[0]))){
-                        $data = explode(' ', trim($row[0]));
-                        foreach($data as $csp){
-                            $this->cspData[$cspkey][] = $csp;
-                        }
-                    }
-                }
-            }
-        }
-        
-        /* deal with created nonces */
-        foreach($this->nonceData as $cspkey => $nonces){
-            foreach($nonces as $nonce){
-                $csp = "'nonce-".trim($nonce)."'";
-                if (!in_array($csp, $this->cspData[$cspkey])){
-                    $this->cspData[$cspkey][] = $csp;
-                }
-            }
-        }
-        
-        /* deal with SEOMatic */
-        if (Craft::$app->plugins->isPluginEnabled('seomatic')){
-            $cspNonces = \nystudio107\seomatic\helpers\DynamicMeta::getCspNonces();
-            foreach($cspNonces as $row){
-                if (!empty(trim($row))){
-                    $data = explode(' ', trim($row));
-                    foreach($data as $csp){  
-                        if (isset($this->cspData['script-src'])){
-                            if (!in_array($csp, $this->cspData['script-src'])){
-                                $this->cspData['script-src'][] = $csp;
-                            }
-                        } else {
-                            $this->cspData['script-src'][] = $csp;
-                        }
-                    }
-                }
-            }
-        }
+    return $headers;
+  }
+
+  public function build(): void {
+    $settings = $this->settings();
+    $options = $settings->cspOptions;
+    if ($settings->cspMode === 'tag') { // these directives aren't supported in meta tags
+      $options = array_values(array_diff($options, ['reportUri', 'frameAncestors', 'sandbox']));
     }
-    
-    public function renderCsp(): void {
-        $settings = Csp::$plugin->settings;
-        $name = ($settings->cspMode == 'report') ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy';
-        $value = '';
-        foreach ($this->cspData as $csp => $data){
-            $value .= $csp.' '.implode(' ', $data).'; ';
+    $this->cspData = [];
+    foreach ($options as $option) {
+      if (!isset(Settings::POLICY_OPTIONS[$option])) {
+        continue;
+      }
+      $key = Settings::POLICY_OPTIONS[$option];
+      foreach ($settings->rows($option) as $row) {
+        foreach (explode(' ', $row[0]) as $source) {
+          $this->cspData[$key][] = $source;
         }
-        if ($settings->cspMode == 'tag'){            
-            Craft::$app->getView()->registerMetaTag([
-                'content' => trim($value),
-                'http-equiv' => $name
-            ]);
-        } else {
-            Craft::$app->getResponse()->getHeaders()->add($name, trim($value));
-        }
+      }
     }
-    
-    public function registerNonce(string $type = 'script-src'): string {
-        $settings = Csp::$plugin->settings;
-        $nonces = [];
-        foreach($this->nonceData as $arg){
-            $nonces = array_merge($nonces, $arg);
-        }        
-        $nonce = base64_encode(StringHelper::randomString());
-        while(in_array($nonce, $nonces)){
-            $nonce = base64_encode(StringHelper::randomString());
+    foreach ($this->nonceData as $key => $nonces) {
+      foreach ($nonces as $nonce) {
+        $csp = "'nonce-" . trim($nonce) . "'";
+        if (!in_array($csp, $this->cspData[$key] ?? [], true)) {
+          $this->cspData[$key][] = $csp;
         }
-        if (in_array($type, $settings->policyOptions)){
-            $this->nonceData[$type][] = $nonce;
-        }
-        return $nonce;
+      }
     }
+    $this->addSeomaticNonces();
+  }
+
+  public function headerName(): string {
+    return ($this->settings()->cspMode === 'report')
+      ? 'Content-Security-Policy-Report-Only'
+      : 'Content-Security-Policy';
+  }
+
+  public function headerValue(): string {
+    $value = '';
+    foreach ($this->cspData as $key => $sources) {
+      $value .= $key . ' ' . implode(' ', $sources) . '; ';
+    }
+    return trim($value);
+  }
+
+  public function registerNonce(string $type = 'script-src'): string {
+    $used = $this->nonceData ? array_merge(...array_values($this->nonceData)) : [];
+    do {
+      $nonce = base64_encode(Str::random(32));
+    } while (in_array($nonce, $used, true));
+    if (in_array($type, Settings::POLICY_OPTIONS, true)) {
+      $this->nonceData[$type][] = $nonce;
+    }
+    return $nonce;
+  }
+
+  private function addSeomaticNonces(): void {
+    $class = '\\nystudio107\\seomatic\\helpers\\DynamicMeta';
+    if (!class_exists($class)) {
+      return; // SEOMatic isn't ported to Craft 6 yet; revisit when it is
+    }
+    try {
+      foreach ($class::getCspNonces() as $row) {
+        foreach (explode(' ', trim((string) $row)) as $source) {
+          if ($source !== '' && !in_array($source, $this->cspData['script-src'] ?? [], true)) {
+            $this->cspData['script-src'][] = $source;
+          }
+        }
+      }
+    } catch (\Throwable) {
+    }
+  }
+
+  private function settings(): Settings {
+    return Csp::getInstance()->getSettings();
+  }
 
 }

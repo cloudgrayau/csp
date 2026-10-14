@@ -2,6 +2,10 @@
 
 Release notes for the CSP Craft CMS plugin.
 
+## 2.0.0-alpha.1 - 2026-10-14
+### Added
+- Initial support for Craft 6.0.0
+
 ## 1.3.0 - 2024-09-17
 - Added multiple CSP version 3 settings - `script-src-attr` `script-src-elem` `style-src-attr` `style-src-elem`
 

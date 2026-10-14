@@ -1,154 +1,112 @@
 <?php
 namespace cloudgrayau\csp;
 
+use cloudgrayau\csp\middleware\{PolicyMiddleware, ProtectionMiddleware};
 use cloudgrayau\csp\models\Settings;
-use cloudgrayau\csp\controllers\SettingsController;
 use cloudgrayau\csp\services\PolicyService;
-use cloudgrayau\csp\variables\CspVariable;
 use cloudgrayau\csp\twigextensions\CspTwigExtension;
+use cloudgrayau\csp\variables\CspVariable;
 use cloudgrayau\utils\UtilityHelper;
 
-use Craft;
-use craft\base\Plugin;
-use craft\elements\User;
-use craft\events\RegisterUrlRulesEvent;
-use craft\helpers\UrlHelper;
-use craft\web\UrlManager;
-use craft\web\Application;
-use craft\web\View;
-use craft\web\twig\variables\CraftVariable;
+use CraftCms\Cms\Form\{Form, FormContext};
+use CraftCms\Cms\Form\Controls\{Choice, Lightswitch, Table, Text};
+use CraftCms\Cms\Form\Nodes\{Field, Separator, Tab};
+use CraftCms\Cms\Plugin\{Plugin, PluginSettings};
+use CraftCms\Cms\Support\Facades\Twig;
+use CraftCms\Cms\Twig\Variables\CraftVariable;
 
-use yii\base\Event;
+use function CraftCms\Cms\t;
 
 class Csp extends Plugin {
 
-   public static $plugin;
-   public string $schemaVersion = '1.0.1';
-   public bool $hasCpSettings = true;
-   public bool $hasCpSection = false;
+  public bool $hasCpSettings = true;
+  public bool $hasCpSection = false;
 
-   // Public Methods
-   // =========================================================================
-
-   public function init(): void {
-      parent::init();
-      self::$plugin = $this;
-         
-      $this->_registerComponents();
-      $this->_registerVariables();
-      $this->_registerTwigExtensions();
-      $this->_parseSettings();
-      $this->_registerInit();
-   }
-   
-   public function getSettingsResponse(): mixed {
-      return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('csp/settings'));
-   }
-   
-   public static function config(): array {
-      return [
-         'components' => [
-            'policy' => ['class' => PolicyService::class]
-         ],
-      ];
-    }
-   
-   // Private Methods
-   // =========================================================================
-   
-   private function _registerComponents(): void {
-      UtilityHelper::registerModule();
-   }
-   
-   private function _registerVariables(): void {
-      Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $e) {
-         $variable = $e->sender;
-         $variable->set('csp', CspVariable::class);
-      });
-   }
-   
-   private function _registerTwigExtensions(): void {
-      Craft::$app->getView()->registerTwigExtension(new CspTwigExtension());
-   }
-   
-   private function _registerInit(): void {
-      Craft::$app->on(Application::EVENT_INIT, function() {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-           return;
-        }
-        $this->policy->applyHeaders();
-        if (Craft::$app->getRequest()->getIsSiteRequest()) {
-           $this->_registerCSP();
-        } elseif (Craft::$app->getRequest()->getIsCpRequest()) {
-           $this->_registerCpUrlRules();
-        }
-      });
-   }
-   
-   private function _registerCSP(): void {
-      $user = Craft::$app->getUser()->getIdentity(); /* Disable CSP when debugToolBar is enabled */
-      if ($user && $user->getPreference('enableDebugToolbarForSite')) {
-         Event::on(View::class, View::EVENT_AFTER_RENDER_PAGE_TEMPLATE, function (Event $e) {
-            Craft::$app->getResponse()->getHeaders()->remove('Content-Security-Policy');
-            Craft::$app->getResponse()->getHeaders()->remove('X-Content-Security-Policy');
-            Craft::$app->getResponse()->getHeaders()->remove('X-Webkit-Csp');
-         });
-         return;
-      }
-      if ($this->settings->cspEnabled){
-         Event::on(View::class, View::EVENT_END_PAGE, function (Event $e) {
-            if ($this->settings->cspEnabled){
-              $this->policy->parseCsp();
-              if ($this->settings->cspMode == 'tag'){
-                 $this->policy->renderCsp();
-              }
-            }
-         });
-         Event::on(View::class, View::EVENT_AFTER_RENDER_PAGE_TEMPLATE, function (Event $e) {
-            Craft::$app->getResponse()->getHeaders()->remove('Content-Security-Policy'); /* Remove all existing CSP headers */
-            Craft::$app->getResponse()->getHeaders()->remove('X-Content-Security-Policy');
-            Craft::$app->getResponse()->getHeaders()->remove('X-Webkit-Csp');
-            if ($this->settings->cspEnabled){
-              if ($this->settings->cspMode == 'header' || $this->settings->cspMode == 'report'){
-                 $this->policy->renderCsp();
-              }
-            }
-         });
-      }
-   }
-   
-   private function _registerCpUrlRules(): void {
-      Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
-         $event->rules += [
-            'csp/settings' => 'csp/settings/settings'
-         ];
-      });
-   }
-   
-  private function _parseSettings(): void { /* Fix table-based settings */
-    $settings = Craft::$app->config->getConfigFromFile('csp');
-    $cspOptions = $this->settings->cspOptions;
-    foreach($cspOptions as $option){
-      if (isset($settings[$option])){
-        $policy = array();
-        foreach($settings[$option] as $row){
-          $row = (array)$row;
-          if (isset($row[0])){
-            if (!empty(trim($row[0]))){
-              $policy[] = array(trim($row[0]));
-            }
-          }
-        }
-        $this->settings[$option] = $policy;
-      }
-    }
+  public function boot(): void {
+    $this->app->scoped(PolicyService::class); // one instance per request, shared by templates and middleware
+    $router = $this->app['router'];
+    $router->prependMiddlewareToGroup('craft', ProtectionMiddleware::class);   // VERIFY group name
+    $router->prependMiddlewareToGroup('craft.web', PolicyMiddleware::class);   // VERIFY covers entry/template requests
+    Twig::registerExtension(new CspTwigExtension());
+    CraftVariable::macro('csp', fn () => new CspVariable());
   }
 
-   // Protected Methods
-   // =========================================================================
+  #[\Override]
+  protected static function createSettings(): PluginSettings {
+    return new Settings();
+  }
 
-   protected function createSettingsModel(): Settings {
-      return new Settings();
-   }
-   
+  #[\Override]
+  public function settingsForm(FormContext $context = new FormContext): ?Form {
+    $settings = $this->getSettings();
+    $cspEnabled = (bool) $this->current($context, 'cspEnabled', $settings->cspEnabled);
+    $protectionEnabled = (bool) $this->current($context, 'protectionEnabled', $settings->protectionEnabled);
+    $options = (array) $this->current($context, 'cspOptions', $settings->cspOptions);
+  
+    $tabs = [];
+    
+    $tabs[] = Tab::make('settings', t('Settings', category: 'csp'), [
+      Field::make(t('Enable Content Security Policy', category: 'csp'), Lightswitch::make('cspEnabled')->reactive())
+        ->instructions(t('A [Content Security Policy](https://content-security-policy.com/) helps you reduce XSS risks on modern browsers by declaring which dynamic resources are allowed to load.', category: 'csp'))
+        ->warning(UtilityHelper::configWarning($this->handle, 'cspEnabled')),
+      Field::make(t('Enable Header Protection', category: 'csp'), Lightswitch::make('protectionEnabled')->reactive())
+        ->instructions(t('Additional HTTP Response Headers that provide security.', category: 'csp'))
+        ->warning(UtilityHelper::configWarning($this->handle, 'protectionEnabled')),
+      Separator::make('csp-separator'),
+      Field::make(t('CSP Mode', category: 'csp'), Choice::make('cspMode')->options(array_map(
+        fn ($value, $label) => ['value' => $value, 'label' => $label],
+        array_keys(Settings::MODE_OPTIONS), Settings::MODE_OPTIONS
+      )))
+        ->required()
+        ->warning(UtilityHelper::configWarning($this->handle, 'cspMode')),
+      Field::make(t('CSP Options', category: 'csp'), Choice::make('cspOptions')->multiple()->reactive()->options(array_map(
+        fn ($value, $label) => ['value' => $value, 'label' => $label],
+        array_keys(Settings::POLICY_OPTIONS), Settings::POLICY_OPTIONS
+      )))
+        ->warning(UtilityHelper::configWarning($this->handle, 'cspOptions')),
+      UtilityHelper::footer(),
+    ]);
+    
+    if ($cspEnabled) {
+      $tabs[] = Tab::make('policy', t('Policy', category: 'csp'), [
+        ...$this->policyNodes($options),
+        UtilityHelper::footer('cloudgray-footer-policy'),
+      ]);
+    }
+    if ($protectionEnabled) {
+      $tabs[] = Tab::make('protection', t('Protection', category: 'csp'), [
+        Field::make(t('HTTP Response Headers', category: 'csp'), Table::make('headerProtection')
+          ->columns([
+            0 => ['heading' => t('Header', category: 'csp'), 'width' => '25%', 'control' => Text::make('0')->monospace()],
+            1 => ['heading' => t('Value', category: 'csp'), 'width' => '75%', 'control' => Text::make('1')->monospace()],
+          ])
+          ->allowAdd()->allowDelete()->allowReorder()
+          ->addRowLabel(t('Add a header', category: 'csp')))
+          ->warning(UtilityHelper::configWarning($this->handle, 'headerProtection')),
+          UtilityHelper::footer('cloudgray-footer-protection'),
+      ]);
+    }
+    return Form::make($tabs);
+  }
+  
+  private function policyNodes(array $options): array {
+    $nodes = [];
+    foreach ($options as $option) {
+      if (!isset(Settings::POLICY_OPTIONS[$option])) {
+        continue;
+      }
+      $nodes[] = Field::make(Settings::POLICY_OPTIONS[$option], Table::make($option)
+        ->columns([0 => ['heading' => '', 'width' => '100%', 'control' => Text::make('0')->monospace()]])
+        ->allowAdd()->allowDelete()->allowReorder()
+        ->addRowLabel(t('Add a policy', category: 'csp')))
+        ->warning(UtilityHelper::configWarning($this->handle, $option));
+    }
+    return $nodes;
+  }
+  
+  /** In-flight form value when the form is refreshing, otherwise the saved setting. */
+  private function current(FormContext $context, string $key, mixed $saved): mixed {
+    return $context->values['settings'][$key] ?? $context->values[$key] ?? $saved;
+  }
+
 }

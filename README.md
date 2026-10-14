@@ -1,4 +1,4 @@
-# CSP for Craft CMS 4/5
+# CSP for Craft CMS 6
 
 Content Security Policy manager for Craft CMS.
 
@@ -6,11 +6,12 @@ Content Security Policy manager for Craft CMS.
 
 ## Requirements
 
-This plugin requires Craft CMS 4.0.0 or later.
+This plugin requires Craft CMS 6.0.0 or later.
 
 ## Installation
 
-`composer require cloudgrayau/csp`
+`composer require cloudgrayau/csp` 
+`php craft plugin:install csp`
 
 ## CSP Overview
 
