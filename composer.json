@@ -37,8 +37,8 @@
         "handle": "csp",
         "developer": "Cloud Gray Pty Ltd",
         "developerUrl": "https://cloudgray.com.au/",
-        "documentationUrl": "https://github.com/cloudgrayau/csp/blob/craft4/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/cloudgrayau/csp/craft4/CHANGELOG.md",
+        "documentationUrl": "https://github.com/cloudgrayau/csp/blob/craft6/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/cloudgrayau/csp/craft6/CHANGELOG.md",
         "class": "cloudgrayau\\csp\\Csp"
     }
 }
