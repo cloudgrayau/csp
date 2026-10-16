@@ -12,6 +12,7 @@ use Craft;
 use craft\base\Plugin;
 use craft\elements\User;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\TemplateEvent;
 use craft\helpers\UrlHelper;
 use craft\web\UrlManager;
 use craft\web\Application;
@@ -96,22 +97,26 @@ class Csp extends Plugin {
          return;
       }
       if ($this->settings->cspEnabled){
-         Event::on(View::class, View::EVENT_END_PAGE, function (Event $e) {
+         /*Event::on(View::class, View::EVENT_END_PAGE, function (Event $e) {
             if ($this->settings->cspEnabled){
               $this->policy->parseCsp();
               if ($this->settings->cspMode == 'tag'){
                  $this->policy->renderCsp();
               }
             }
-         });
-         Event::on(View::class, View::EVENT_AFTER_RENDER_PAGE_TEMPLATE, function (Event $e) {
+         });*/
+         Event::on(View::class, View::EVENT_AFTER_RENDER_PAGE_TEMPLATE, function (TemplateEvent $e) {
             Craft::$app->getResponse()->getHeaders()->remove('Content-Security-Policy'); /* Remove all existing CSP headers */
             Craft::$app->getResponse()->getHeaders()->remove('X-Content-Security-Policy');
             Craft::$app->getResponse()->getHeaders()->remove('X-Webkit-Csp');
-            if ($this->settings->cspEnabled){
-              if ($this->settings->cspMode == 'header' || $this->settings->cspMode == 'report'){
-                 $this->policy->renderCsp();
-              }
+            if (!$this->settings->cspEnabled) {
+              return;
+            }
+            $this->policy->parseCsp();
+            if ($this->settings->cspMode == 'tag') {
+              $e->output = $this->policy->injectMeta($e->output);
+            } else {
+              $this->policy->renderCsp();
             }
          });
       }

@@ -28,6 +28,7 @@ class PolicyService extends Component {
     }
     
     public function parseCsp(): void {
+        $this->cspData = [];
         $settings = Csp::$plugin->settings;
         $cspOptions = $settings->cspOptions;
         if ($settings->cspMode == 'tag'){ /* disable unsupported meta tag options */
@@ -98,14 +99,33 @@ class PolicyService extends Component {
         foreach ($this->cspData as $csp => $data){
             $value .= $csp.' '.implode(' ', $data).'; ';
         }
-        if ($settings->cspMode == 'tag'){            
+        Craft::$app->getResponse()->getHeaders()->add($name, trim($value));
+        /*if ($settings->cspMode == 'tag'){            
             Craft::$app->getView()->registerMetaTag([
                 'content' => trim($value),
                 'http-equiv' => $name
             ]);
         } else {
             Craft::$app->getResponse()->getHeaders()->add($name, trim($value));
+        }*/
+    }
+    
+    public function injectMeta(string $html): string {
+        $name = 'Content-Security-Policy';
+        $value = '';
+        foreach ($this->cspData as $csp => $data){
+            $value .= $csp.' '.implode(' ', $data).'; ';
         }
+        $value = trim($value);
+        if ($value === '' || !preg_match('/<head(?:\s[^>]*)?>/i', $html, $head, PREG_OFFSET_CAPTURE)) {
+            return $html;
+        }
+        $pos = $head[0][1] + strlen($head[0][0]);
+        if (preg_match('/\G\s*<meta\s+charset=[^>]*>/i', $html, $charset, 0, $pos)) {
+            $pos += strlen($charset[0]); // a <meta charset> has to stay within the first 1024 bytes
+        }
+        $meta = '<meta http-equiv="'.$name.'" content="'.htmlspecialchars($value, ENT_QUOTES).'">';
+        return substr_replace($html, $meta, $pos, 0);
     }
     
     public function registerNonce(string $type = 'script-src'): string {
