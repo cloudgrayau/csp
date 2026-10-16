@@ -10,7 +10,7 @@ This plugin requires Craft CMS 6.0.0 or later.
 
 ## Installation
 
-`composer require cloudgrayau/csp` 
+`composer require cloudgrayau/csp`  
 `php craft plugin:install csp`
 
 ## CSP Overview
