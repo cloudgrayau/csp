@@ -3,8 +3,9 @@
 Release notes for the CSP Craft CMS plugin.
 
 ## 1.3.1 - 2026-10-16
+### Changed
 - Meta-tag mode now places the policy at the start of `<head>`, so it governs resources loaded earlier in the head than before. Check your browser console after updating
-- Slight performance improvement
+- Slight performance improvements
 
 ## 1.3.0 - 2024-09-17
 - Added multiple CSP version 3 settings - `script-src-attr` `script-src-elem` `style-src-attr` `style-src-elem`
