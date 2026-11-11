@@ -2,7 +2,7 @@
 
 Release notes for the CSP Craft CMS plugin.
 
-## 2.0.0-alpha.1 - 2026-10-16
+## 2.0.0-beta.1 - 2026-11-11
 ### Added
 - Initial support for Craft 6.0.0
 

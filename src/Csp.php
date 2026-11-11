@@ -8,9 +8,9 @@ use cloudgrayau\csp\twigextensions\CspTwigExtension;
 use cloudgrayau\csp\variables\CspVariable;
 use cloudgrayau\utils\UtilityHelper;
 
-use CraftCms\Cms\Form\{Form, FormContext};
-use CraftCms\Cms\Form\Controls\{Choice, Lightswitch, Table, Text};
-use CraftCms\Cms\Form\Nodes\{Field, Separator, Tab};
+use CraftCms\Cms\Ui\{Ui, UiContext};
+use CraftCms\Cms\Ui\Controls\{Choice, Lightswitch, Table, Text};
+use CraftCms\Cms\Ui\Nodes\{Field, Separator, Tab};
 use CraftCms\Cms\Plugin\{Plugin, PluginSettings};
 use CraftCms\Cms\Support\Facades\Twig;
 use CraftCms\Cms\Twig\Variables\CraftVariable;
@@ -36,8 +36,7 @@ class Csp extends Plugin {
     return new Settings();
   }
 
-  #[\Override]
-  public function settingsForm(FormContext $context = new FormContext): ?Form {
+  public function settingsUi(UiContext $context = new UiContext): ?Ui {
     $settings = $this->getSettings();
     $cspEnabled = (bool) $this->current($context, 'cspEnabled', $settings->cspEnabled);
     $protectionEnabled = (bool) $this->current($context, 'protectionEnabled', $settings->protectionEnabled);
@@ -86,7 +85,7 @@ class Csp extends Plugin {
           UtilityHelper::footer('cloudgray-footer-protection'),
       ]);
     }
-    return Form::make($tabs);
+    return Ui::make($tabs);
   }
   
   private function policyNodes(array $options): array {
@@ -105,7 +104,7 @@ class Csp extends Plugin {
   }
   
   /** In-flight form value when the form is refreshing, otherwise the saved setting. */
-  private function current(FormContext $context, string $key, mixed $saved): mixed {
+  private function current(UiContext $context, string $key, mixed $saved): mixed {
     return $context->values['settings'][$key] ?? $context->values[$key] ?? $saved;
   }
 

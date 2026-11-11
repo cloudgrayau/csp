@@ -13,20 +13,44 @@ class Settings extends PluginSettings {
   ];
 
   public const POLICY_OPTIONS = [
-    'defaultSrc' => 'default-src', 'scriptSrc' => 'script-src', 'scriptSrcAttr' => 'script-src-attr',
-    'scriptSrcElem' => 'script-src-elem', 'styleSrc' => 'style-src', 'styleSrcAttr' => 'style-src-attr',
-    'styleSrcElem' => 'style-src-elem', 'imgSrc' => 'img-src', 'connectSrc' => 'connect-src',
-    'fontSrc' => 'font-src', 'objectSrc' => 'object-src', 'mediaSrc' => 'media-src',
-    'frameSrc' => 'frame-src', 'sandbox' => 'sandbox', 'reportUri' => 'report-uri',
-    'childSrc' => 'child-src', 'formAction' => 'form-action', 'frameAncestors' => 'frame-ancestors',
-    'pluginTypes' => 'plugin-types', 'baseUri' => 'base-uri', 'reportTo' => 'report-to',
-    'workerSrc' => 'worker-src', 'manifestSrc' => 'manifest-src', 'prefetchSrc' => 'prefetch-src',
-    'navigateTo' => 'navigate-to',
+    'defaultSrc' => 'default-src',
+    'scriptSrc' => 'script-src',
+    'scriptSrcAttr' => 'script-src-attr',
+    'scriptSrcElem' => 'script-src-elem',
+    'styleSrc' => 'style-src',
+    'styleSrcAttr' => 'style-src-attr',
+    'styleSrcElem' => 'style-src-elem',
+    'imgSrc' => 'img-src',
+    'connectSrc' => 'connect-src',
+    'fontSrc' => 'font-src',
+    'objectSrc' => 'object-src',
+    'mediaSrc' => 'media-src',
+    'frameSrc' => 'frame-src',
+    'sandbox' => 'sandbox',
+    'reportUri' => 'report-uri',
+    'childSrc' => 'child-src',
+    'formAction' => 'form-action',
+    'frameAncestors' => 'frame-ancestors',
+    'pluginTypes' => 'plugin-types',
+    'baseUri' => 'base-uri',
+    'reportTo' => 'report-to',
+    'workerSrc' => 'worker-src',
+    'manifestSrc' => 'manifest-src',
+    'prefetchSrc' => 'prefetch-src',
+    'navigateTo' => 'navigate-to'
   ];
 
   public bool $cspEnabled = true;
   public string $cspMode = 'header';
-  public array $cspOptions = ['defaultSrc', 'scriptSrc', 'styleSrc', 'imgSrc', 'connectSrc', 'formAction', 'baseUri'];
+  public array $cspOptions = [
+    'defaultSrc',
+    'scriptSrc',
+    'styleSrc',
+    'imgSrc',
+    'connectSrc',
+    'formAction',
+    'baseUri'
+  ];
   public bool $protectionEnabled = true;
   public array $headerProtection = [
     ['Referrer-Policy', 'strict-origin-when-cross-origin'],
@@ -36,15 +60,25 @@ class Settings extends PluginSettings {
     ['X-Xss-Protection', '1; mode=block'],
   ];
 
-  public array $defaultSrc = [["'none'"]];
-  public array $scriptSrc = [["'self'"]];
+  public array $defaultSrc = [
+    ["'none'"]
+  ];
+  public array $scriptSrc = [
+    ["'self'"]
+  ];
   public array $scriptSrcAttr = [];
   public array $scriptSrcElem = [];
-  public array $styleSrc = [["'self'"]];
+  public array $styleSrc = [
+    ["'self'"]
+  ];
   public array $styleSrcAttr = [];
   public array $styleSrcElem = [];
-  public array $imgSrc = [["'self'"]];
-  public array $connectSrc = [["'self'"]];
+  public array $imgSrc = [
+    ["'self'"]
+  ];
+  public array $connectSrc = [
+    ["'self'"]
+  ];
   public array $fontSrc = [];
   public array $objectSrc = [];
   public array $mediaSrc = [];
@@ -52,10 +86,14 @@ class Settings extends PluginSettings {
   public array $sandbox = [];
   public array $reportUri = [];
   public array $childSrc = [];
-  public array $formAction = [["'self'"]];
+  public array $formAction = [
+    ["'self'"]
+  ];
   public array $frameAncestors = [];
   public array $pluginTypes = [];
-  public array $baseUri = [["'self'"]];
+  public array $baseUri = [
+    ["'self'"]
+  ];
   public array $reportTo = [];
   public array $workerSrc = [];
   public array $manifestSrc = [];
