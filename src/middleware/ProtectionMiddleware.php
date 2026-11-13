@@ -1,7 +1,6 @@
 <?php
 namespace cloudgrayau\csp\middleware;
 
-use cloudgrayau\csp\helpers\RequestHelper;
 use cloudgrayau\csp\services\PolicyService;
 
 use Closure;
@@ -13,7 +12,7 @@ class ProtectionMiddleware {
   public function __construct(private PolicyService $policy) {}
 
   public function handle(Request $request, Closure $next): Response {
-    if (RequestHelper::isCp($request)) {
+    if ($request->isCpRequest()) {
       return $next($request);
     }
     $response = $next($request);

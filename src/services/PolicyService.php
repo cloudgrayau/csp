@@ -4,12 +4,36 @@ namespace cloudgrayau\csp\services;
 use cloudgrayau\csp\Csp;
 use cloudgrayau\csp\models\Settings;
 
-use Illuminate\Support\Str;
-
 class PolicyService {
 
   private array $cspData = [];
   private array $nonceData = [];
+
+  private function addSeomaticNonces(): void {
+    $class = '\\nystudio107\\seomatic\\helpers\\DynamicMeta';
+    if (!class_exists($class)) {
+      return; // SEOMatic isn't ported to Craft 6 yet; revisit when it is
+    }
+    try {
+      foreach ($class::getCspNonces() as $row) {
+        foreach (self::sources((string) $row) as $source) {
+          if (!in_array($source, $this->cspData['script-src'] ?? [], true)) {
+            $this->cspData['script-src'][] = $source;
+          }
+        }
+      }
+    } catch (\Throwable) {
+    }
+  }
+
+  /** A row's space-separated sources, ignoring repeated spaces. */
+  private static function sources(string $row): array {
+    return preg_split('/\s+/', trim($row), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+  }
+
+  private function settings(): Settings {
+    return Csp::getInstance()->getSettings();
+  }
 
   public function protectionHeaders(): array {
     $settings = $this->settings();
@@ -38,7 +62,7 @@ class PolicyService {
       }
       $key = Settings::POLICY_OPTIONS[$option];
       foreach ($settings->rows($option) as $row) {
-        foreach (explode(' ', $row[0]) as $source) {
+        foreach (self::sources($row[0]) as $source) {
           $this->cspData[$key][] = $source;
         }
       }
@@ -69,35 +93,11 @@ class PolicyService {
   }
 
   public function registerNonce(string $type = 'script-src'): string {
-    $used = $this->nonceData ? array_merge(...array_values($this->nonceData)) : [];
-    do {
-      $nonce = base64_encode(Str::random(32));
-    } while (in_array($nonce, $used, true));
+    $nonce = base64_encode(random_bytes(18)); // 144 random bits; a collision isn't a practical concern
     if (in_array($type, Settings::POLICY_OPTIONS, true)) {
       $this->nonceData[$type][] = $nonce;
     }
     return $nonce;
-  }
-
-  private function addSeomaticNonces(): void {
-    $class = '\\nystudio107\\seomatic\\helpers\\DynamicMeta';
-    if (!class_exists($class)) {
-      return; // SEOMatic isn't ported to Craft 6 yet; revisit when it is
-    }
-    try {
-      foreach ($class::getCspNonces() as $row) {
-        foreach (explode(' ', trim((string) $row)) as $source) {
-          if ($source !== '' && !in_array($source, $this->cspData['script-src'] ?? [], true)) {
-            $this->cspData['script-src'][] = $source;
-          }
-        }
-      }
-    } catch (\Throwable) {
-    }
-  }
-
-  private function settings(): Settings {
-    return Csp::getInstance()->getSettings();
   }
 
 }

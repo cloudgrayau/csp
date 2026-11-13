@@ -8,10 +8,6 @@ use Twig\TwigFunction;
 
 class CspTwigExtension extends AbstractExtension {
 
-  public function getName(): string {
-    return 'Content Security Policy';
-  }
-
   public function getFunctions(): array {
     return [
       new TwigFunction('csp', [$this, 'registerNonce']),

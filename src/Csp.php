@@ -22,24 +22,48 @@ class Csp extends Plugin {
   public bool $hasCpSettings = true;
   public bool $hasCpSection = false;
 
-  public function boot(): void {
-    $this->app->scoped(PolicyService::class); // one instance per request, shared by templates and middleware
-    $router = $this->app['router'];
-    $router->prependMiddlewareToGroup('craft', ProtectionMiddleware::class);   // VERIFY group name
-    $router->prependMiddlewareToGroup('craft.web', PolicyMiddleware::class);   // VERIFY covers entry/template requests
-    Twig::registerExtension(new CspTwigExtension());
-    CraftVariable::macro('csp', fn () => new CspVariable());
-  }
-
   #[\Override]
   protected static function createSettings(): PluginSettings {
     return new Settings();
   }
 
+  private function policyNodes(array $options): array {
+    $nodes = [];
+    foreach ($options as $option) {
+      if (!isset(Settings::POLICY_OPTIONS[$option])) {
+        continue;
+      }
+      $nodes[] = Field::make(Settings::POLICY_OPTIONS[$option], Table::make($option)
+        ->columns([0 => ['heading' => '', 'width' => '100%', 'control' => Text::make('0')->monospace()]])
+        ->allowAdd()->allowDelete()->allowReorder()
+        ->addRowLabel(t('Add a policy', category: 'csp')))
+        ->warning(UtilityHelper::configWarning($this->handle, $option));
+    }
+    return $nodes;
+  }
+  
+  /** In-flight form value when the form is refreshing, otherwise the saved setting. */
+  private function current(UiContext $context, string $key, mixed $saved): mixed {
+    $old = old("settings.$key"); // input flashed by a save that failed validation
+    if ($old !== null) {
+      return $old;
+    }
+    return $context->values['settings'][$key] ?? $context->values[$key] ?? $saved;
+  }
+
+  public function boot(): void {
+    $this->app->scoped(PolicyService::class); // one instance per request, shared by templates and middleware
+    $router = $this->app['router'];
+    $router->prependMiddlewareToGroup('craft', ProtectionMiddleware::class); // every Craft request; skips the CP itself
+    $router->prependMiddlewareToGroup('craft.web', PolicyMiddleware::class); // site and front-end action requests
+    Twig::registerExtension(new CspTwigExtension());
+    CraftVariable::macro('csp', fn () => new CspVariable());
+  }
+
   public function settingsUi(UiContext $context = new UiContext): ?Ui {
     $settings = $this->getSettings();
-    $cspEnabled = (bool) $this->current($context, 'cspEnabled', $settings->cspEnabled);
-    $protectionEnabled = (bool) $this->current($context, 'protectionEnabled', $settings->protectionEnabled);
+    $cspEnabled = filter_var($this->current($context, 'cspEnabled', $settings->cspEnabled), FILTER_VALIDATE_BOOLEAN);
+    $protectionEnabled = filter_var($this->current($context, 'protectionEnabled', $settings->protectionEnabled), FILTER_VALIDATE_BOOLEAN);
     $options = (array) $this->current($context, 'cspOptions', $settings->cspOptions);
   
     $tabs = [];
@@ -82,30 +106,10 @@ class Csp extends Plugin {
           ->allowAdd()->allowDelete()->allowReorder()
           ->addRowLabel(t('Add a header', category: 'csp')))
           ->warning(UtilityHelper::configWarning($this->handle, 'headerProtection')),
-          UtilityHelper::footer('cloudgray-footer-protection'),
+        UtilityHelper::footer('cloudgray-footer-protection'),
       ]);
     }
     return Ui::make($tabs);
-  }
-  
-  private function policyNodes(array $options): array {
-    $nodes = [];
-    foreach ($options as $option) {
-      if (!isset(Settings::POLICY_OPTIONS[$option])) {
-        continue;
-      }
-      $nodes[] = Field::make(Settings::POLICY_OPTIONS[$option], Table::make($option)
-        ->columns([0 => ['heading' => '', 'width' => '100%', 'control' => Text::make('0')->monospace()]])
-        ->allowAdd()->allowDelete()->allowReorder()
-        ->addRowLabel(t('Add a policy', category: 'csp')))
-        ->warning(UtilityHelper::configWarning($this->handle, $option));
-    }
-    return $nodes;
-  }
-  
-  /** In-flight form value when the form is refreshing, otherwise the saved setting. */
-  private function current(UiContext $context, string $key, mixed $saved): mixed {
-    return $context->values['settings'][$key] ?? $context->values[$key] ?? $saved;
   }
 
 }
